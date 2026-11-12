@@ -1,0 +1,2768 @@
+/* ==========================================================================
+   50 Days to Cairo: styles
+   1. Design tokens
+   2. Base
+   3. Page layout
+   4. Map
+   5. Journal panel
+   6. Stand encounters
+   7. Live data panels
+   8. Collected stamps
+   9. Buttons
+   10. Intro and ending dialogs
+   11. Utilities and motion preferences
+   ========================================================================== */
+
+/* 1. Design tokens
+   ========================================================================== */
+
+:root {
+  /* Palette: aged paper, sepia ink, postal red, Jotaro navy, DIO gold, Hermit Purple */
+  --color-paper: #f1e6cf;
+  --color-paper-shade: #e4d3b0;
+  --color-page: #f8f1df;
+  --color-ink: #2e2219;
+  --color-ink-faded: #6b5845;
+  --color-stamp-red: #a8322b;
+  --color-route: #24365c;
+  --color-route-dark: #172440;
+  --color-gold: #a87a22;
+  --color-gold-ink: #7d5a12; /* darker gold, readable as text on paper and on god cards */
+  --color-hermit: #5b2a86;
+  --color-card-back: #172440;
+  --color-card-gold: #d9b45a;
+  --color-card-gold-text: #f2dc9b;
+
+  /* The JoJo moment when a card turns over: bold print colors, never behind text */
+  --color-burst-magenta: #d81b7a;
+  --color-burst-teal: #0aa3a3;
+  --color-burst-yellow: #d7f03a;
+  --color-void: #0d0b10; /* Cream's void */
+
+  /* Type */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Courier Prime", "Courier New", monospace;
+  --font-hand: "Reenie Beanie", "Bradley Hand", cursive;
+  --font-sfx: "Dela Gothic One", "Hiragino Kaku Gothic StdN", "Yu Gothic", sans-serif;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+
+  --shadow-soft: 0 1px 3px rgb(46 34 25 / 0.35);
+
+  /* Fine paper grain: an SVG noise filter drawn in brown at very low strength */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.26 0 0 0 0 0.14 0 0 0 0.1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+/* 2. Base
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Aged paper: grain, a few foxing spots, and edges darkened by handling */
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-paper);
+  background-image:
+    var(--paper-grain),
+    radial-gradient(circle at 8% 14%, rgb(150 105 50 / 0.1), transparent 14rem),
+    radial-gradient(circle at 93% 80%, rgb(150 105 50 / 0.09), transparent 12rem),
+    radial-gradient(circle at 68% 6%, rgb(150 105 50 / 0.06), transparent 8rem),
+    radial-gradient(ellipse at 50% 40%, transparent 60%, rgb(120 85 40 / 0.14));
+  background-attachment: fixed; /* frames the window, with no seams where the page ends */
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  line-height: 1.1;
+}
+
+a {
+  color: var(--color-route);
+}
+
+/* One focus ring for every control: a line of red ink */
+:focus-visible {
+  outline: 3px solid var(--color-stamp-red);
+  outline-offset: 2px;
+}
+
+/* The hidden attribute always wins, even over rules like display: grid */
+[hidden] {
+  display: none !important;
+}
+
+/* Placeholder for story text that hasn't been written yet */
+.is-todo {
+  color: var(--color-ink-faded);
+  font-style: italic;
+}
+
+/* Label and value pairs, used for Stand details */
+.fact-list {
+  display: grid;
+  gap: var(--space-xs);
+  margin: 0;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: var(--space-sm);
+}
+
+.fact dt {
+  color: var(--color-ink-faded);
+}
+
+.fact dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.fact .is-todo {
+  font-weight: 400;
+}
+
+/* 3. Page layout
+   ========================================================================== */
+
+/* A compact band: the title on the left, the day and your distance on the right */
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm) var(--space-lg);
+  padding: var(--space-sm) var(--space-md) var(--space-xs);
+}
+
+.site-header__brand {
+  flex: 1 1 20rem;
+}
+
+.site-header__kicker {
+  margin: 0;
+  color: var(--color-stamp-red);
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.site-header__title {
+  margin: 0;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  font-weight: 800;
+  font-variation-settings: "SOFT" 100, "WONK" 1;
+  line-height: 1.05;
+}
+
+.site-header__tagline {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-ink-faded);
+  font-size: 0.85rem;
+}
+
+.site-header__progress {
+  flex: 0 1 34rem;
+  display: grid;
+  justify-items: end;
+  gap: var(--space-xs);
+  text-align: right;
+}
+
+.day-counter {
+  margin: 0;
+  color: var(--color-stamp-red);
+  font-family: var(--font-hand);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.day-counter__star {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-right: 0.1em;
+  fill: currentColor;
+  vertical-align: -0.05em;
+}
+
+.day-counter__number {
+  font-size: 2.25rem;
+}
+
+/* Your distance from DIO: a status line, buttons, and the city form when needed */
+.position {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-xs);
+}
+
+.position__status {
+  margin: 0;
+  color: var(--color-ink-faded);
+  font-size: 0.9rem;
+}
+
+.position__distance {
+  display: block;
+  color: var(--color-route);
+  font-family: var(--font-hand);
+  font-size: 1.6rem;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.position__origin {
+  display: block;
+  font-size: 0.75rem;
+}
+
+.position__actions,
+.position__form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-xs) var(--space-sm);
+}
+
+.position .button--small {
+  min-height: 2rem;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+.position__input {
+  width: 14rem;
+  max-width: 100%;
+  padding: 0.4rem 0.6rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 3px;
+  background-color: var(--color-page);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.position__hint {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--color-ink-faded);
+  font-size: 0.75rem;
+}
+
+.position__share-status {
+  margin: 0;
+  color: var(--color-route);
+  font-size: 0.85rem;
+}
+
+.position__share-fallback {
+  display: grid;
+  justify-items: end;
+  gap: var(--space-xs);
+  width: min(100%, 32rem);
+}
+
+.position__share-text {
+  width: 100%;
+  padding: var(--space-sm);
+  border: 2px dashed var(--color-route);
+  background-color: var(--color-page);
+  color: var(--color-ink);
+  font: inherit;
+  resize: none;
+}
+
+/* Narrow screens: everything centered and stacked */
+@media (max-width: 40rem) {
+  .site-header {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .site-header__progress {
+    flex-basis: 100%;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .position,
+  .position__share-fallback {
+    justify-items: center;
+  }
+
+  .position__actions,
+  .position__form {
+    justify-content: center;
+  }
+}
+
+.journey {
+  flex: 1;
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+}
+
+/* Wide screens: map and journal side by side at a fixed height (the journal scrolls on
+   its own), with the collected stamps in a row of their own underneath */
+@media (min-width: 56rem) {
+  .journey {
+    flex: none;
+    grid-template-columns: minmax(0, 1fr) minmax(20rem, 26rem);
+    grid-template-rows: clamp(32rem, 82vh, 60rem) auto;
+  }
+}
+
+.site-footer {
+  padding: var(--space-md);
+  border-top: 1px dashed var(--color-ink-faded);
+  color: var(--color-ink-faded);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.site-footer p {
+  margin: var(--space-sm) 0 0;
+}
+
+/* 4. Map
+   ========================================================================== */
+
+.map-section {
+  position: relative;
+  display: flex;
+  height: 55vh;
+  min-height: 18rem;
+}
+
+@media (min-width: 56rem) {
+  .map-section {
+    height: auto;
+  }
+}
+
+/* The map is pasted into the journal with two strips of masking tape along its
+   top edge, clear of the zoom buttons and the attribution */
+.map-section::before,
+.map-section::after {
+  content: "";
+  position: absolute;
+  z-index: 1001;
+  width: 5.5rem;
+  height: 1.4rem;
+  background-color: rgb(232 218 180 / 0.78);
+  background-image: repeating-linear-gradient(90deg, transparent 0 3px, rgb(255 255 255 / 0.12) 3px 4px);
+  box-shadow: 0 1px 2px rgb(46 34 25 / 0.2);
+  pointer-events: none;
+}
+
+.map-section::before {
+  top: -0.55rem;
+  right: 1.5rem;
+  rotate: 4deg;
+}
+
+.map-section::after {
+  top: -0.55rem;
+  left: 4.5rem;
+  rotate: -3deg;
+}
+
+.map {
+  flex: 1;
+  border: 2px solid var(--color-ink);
+  border-radius: 4px;
+  box-shadow: var(--shadow-soft);
+}
+
+.leaflet-container {
+  background-color: var(--color-paper-shade);
+  font-family: var(--font-body);
+}
+
+/* Only the tiles are tinted, so the attribution and controls stay crisp */
+.leaflet-tile-pane {
+  filter: sepia(0.45) saturate(0.75) contrast(0.95);
+}
+
+.leaflet-container .leaflet-control-attribution {
+  padding: 0.125rem 0.5rem;
+  background-color: rgb(241 230 207 / 0.95);
+  color: var(--color-ink);
+  font-size: 0.75rem;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: var(--color-route);
+  text-decoration: underline;
+}
+
+/* Route lines: the whole route as a faint dotted line; the part traveled as a
+   Hermit Purple vine, with thorns made by a wider, sparsely dashed second line */
+.route-line {
+  fill: none;
+}
+
+.route-line--planned {
+  stroke: var(--color-ink-faded);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1 8;
+  opacity: 0.6;
+}
+
+.route-line--vine {
+  stroke: var(--color-hermit);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route-line--thorns {
+  stroke: var(--color-hermit);
+  stroke-width: 9;
+  stroke-linecap: butt;
+  stroke-dasharray: 1.5 13;
+}
+
+/* Stop markers. Leaflet positions the outer element with an inline transform,
+   so all visual styling goes on the inner pin. Reached stops are Joestar stars. */
+.stop-marker {
+  display: grid;
+}
+
+.stop-marker__pin {
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: scale 0.2s;
+}
+
+.stop-marker__star {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  scale: 1.2;
+  fill: var(--color-route);
+  stroke: var(--color-paper);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgb(46 34 25 / 0.45));
+}
+
+/* The star's middle sits a little below its box's middle */
+.stop-marker__number {
+  position: relative;
+  top: 0.08rem;
+}
+
+.stop-marker:focus-visible {
+  outline: none;
+}
+
+.stop-marker:focus-visible .stop-marker__pin {
+  border-radius: 50%;
+  outline: 3px solid var(--color-stamp-red);
+  outline-offset: 4px;
+}
+
+.stop-marker.is-current .stop-marker__pin {
+  scale: 1.3;
+}
+
+.stop-marker.is-current .stop-marker__star {
+  fill: var(--color-stamp-red);
+}
+
+/* Locked stops stay plain dashed circles and can't be clicked until reached */
+.stop-marker.is-locked {
+  pointer-events: none;
+}
+
+.stop-marker.is-locked .stop-marker__star {
+  display: none;
+}
+
+.stop-marker.is-locked .stop-marker__pin {
+  border: 2px dashed var(--color-ink-faded);
+  border-radius: 50%;
+  background-color: var(--color-paper-shade);
+  color: var(--color-ink-faded);
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.leaflet-tooltip.stop-tooltip {
+  border-color: var(--color-ink-faded);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-weight: 700;
+}
+
+.leaflet-tooltip-top.stop-tooltip::before {
+  border-top-color: var(--color-ink-faded);
+}
+
+/* Ambush points: a small red diamond where a fight broke out on the way. They stay hidden
+   until reached; the one being viewed is drawn in dark ink. */
+.ambush-marker {
+  display: grid;
+}
+
+.ambush-marker.is-locked {
+  display: none;
+}
+
+.ambush-marker__pin {
+  border: 2px solid var(--color-paper);
+  background-color: var(--color-stamp-red);
+  box-shadow: 0 1px 2px rgb(46 34 25 / 0.45);
+  rotate: 45deg;
+  scale: 0.75;
+  transition: scale 0.2s;
+}
+
+.ambush-marker.is-current .ambush-marker__pin {
+  background-color: var(--color-ink);
+  scale: 1;
+}
+
+.ambush-marker:focus-visible {
+  outline: none;
+}
+
+.ambush-marker:focus-visible .ambush-marker__pin {
+  outline: 3px solid var(--color-stamp-red);
+  outline-offset: 3px;
+}
+
+/* Message shown over the map when the map library or tiles fail */
+.map-notice {
+  position: absolute;
+  top: var(--space-md);
+  left: 50%;
+  z-index: 1002;
+  width: min(90%, 28rem);
+  margin: 0;
+  padding: var(--space-sm) var(--space-md);
+  transform: translateX(-50%);
+  border: 2px dashed var(--color-stamp-red);
+  background-color: var(--color-paper);
+  box-shadow: var(--shadow-soft);
+  color: var(--color-ink);
+  text-align: center;
+}
+
+/* 5. Journal panel
+   ========================================================================== */
+
+/* A journal page with a stitched binding down the left edge. It holds the stop's entry,
+   then the Next bar. */
+.journal {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--color-ink);
+  border-radius: 4px;
+  background-color: var(--color-page);
+  background-image: repeating-linear-gradient(to bottom, rgb(107 88 69 / 0.5) 0 7px, transparent 7px 13px);
+  background-repeat: no-repeat;
+  background-size: 1.5px 100%;
+  background-position: 0.65rem 0;
+  box-shadow: var(--shadow-soft);
+}
+
+/* Faint ruled lines that scroll with the writing */
+.entry {
+  padding: var(--space-md) var(--space-md) var(--space-lg) 1.75rem;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 calc(1.75rem - 1px), rgb(36 54 92 / 0.07) calc(1.75rem - 1px) 1.75rem);
+  background-size: 100% 1.75rem;
+  background-attachment: local;
+}
+
+/* Wide screens: the entry scrolls on its own above the Next bar. The bar never covers it,
+   and stays in the same place however long the entry is or while its panels load.
+   position: relative keeps visually hidden text inside the scrolling area, instead of
+   stretching the page below the footer. */
+@media (min-width: 56rem) {
+  .entry {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
+.entry__header {
+  position: relative;
+  margin-bottom: var(--space-md);
+}
+
+/* In Egypt, ドドドド looms beside the stop's name, in a column kept clear for it */
+.entry__header--menaced {
+  min-height: 6.8rem;
+  padding-right: 3.25rem;
+}
+
+.entry__header--cairo {
+  min-height: 8rem;
+}
+
+.entry__menace {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+  color: var(--color-hermit);
+  font-family: var(--font-sfx);
+  font-size: 1.6rem;
+  line-height: 1;
+  writing-mode: vertical-rl;
+  opacity: 0.35;
+  pointer-events: none;
+  user-select: none;
+}
+
+.entry__menace--cairo {
+  color: var(--color-stamp-red);
+  font-size: 1.9rem;
+  opacity: 0.5;
+}
+
+.entry__menace.is-looming {
+  animation: loom 1.6s ease-out;
+}
+
+@keyframes loom {
+  0% {
+    opacity: 0;
+    scale: 1.6;
+  }
+
+  30% {
+    opacity: 0.9;
+    scale: 1;
+  }
+
+  45% {
+    scale: 1.06;
+  }
+
+  60% {
+    scale: 1;
+  }
+}
+
+.entry__meta {
+  margin: 0;
+  color: var(--color-stamp-red);
+  font-family: var(--font-hand);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.entry__name {
+  margin: var(--space-xs) 0 0;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800;
+  font-variation-settings: "SOFT" 100, "WONK" 1;
+}
+
+.entry__distance {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-route);
+  font-family: var(--font-hand);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+/* Where an ambush happened, under its heading */
+.entry__where {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-ink-faded);
+  font-style: italic;
+}
+
+.entry__section {
+  margin-bottom: var(--space-md);
+}
+
+/* Section titles: handwritten margin notes with a pencil underline */
+.entry__section-title {
+  width: fit-content;
+  margin: 0 0 var(--space-sm);
+  color: var(--color-ink);
+  font-family: var(--font-hand);
+  font-size: 1.7rem;
+  font-weight: 400;
+  line-height: 1;
+  text-decoration: underline wavy rgb(107 88 69 / 0.55) 1px;
+  text-underline-offset: 0.18em;
+  -webkit-text-stroke: 0.035em currentColor; /* thickens the thin pen strokes so they read easily */
+  rotate: -1deg;
+}
+
+.entry__empty {
+  margin: 0;
+}
+
+.entry__empty {
+  color: var(--color-ink-faded);
+}
+
+/* Narrow screens: the Next bar stays pinned to the bottom of the screen while the page
+   scrolls through the journal, then settles at the journal's end (it never leaves the
+   journal, so it can't reach the stamps). Anything scrolled into view, like a focused
+   Try again button, stops above the bar instead of underneath it. */
+.journal__controls {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-left: 1.25rem; /* leaves the binding showing */
+  padding: var(--space-sm) var(--space-md) var(--space-sm) 0.5rem;
+  border-top: 1px dashed var(--color-ink-faded);
+  background-color: var(--color-page);
+}
+
+html {
+  scroll-padding-bottom: 6rem;
+  scrollbar-gutter: stable; /* the page doesn't shift when a dialog stops it scrolling */
+}
+
+/* While a dialog is open, the page behind it stays put */
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+/* Wide screens: the bar sits below the entry's scrolling area, so nothing needs to clear it */
+@media (min-width: 56rem) {
+  .journal__controls {
+    position: static;
+  }
+
+  html {
+    scroll-padding-bottom: 0;
+  }
+}
+
+.journal__controls .button {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The stamp counter beside the Next button: a little inked stamp of its own, linking to
+   the stamps panel. It bumps when a stamp lands. */
+.stamp-counter {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.5rem;
+  border: 1.5px dashed var(--color-stamp-red);
+  border-radius: 4px;
+  color: var(--color-stamp-red);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  rotate: -2deg;
+}
+
+.stamp-counter:hover {
+  border-style: solid;
+  background-color: rgb(168 50 43 / 0.08);
+}
+
+.stamp-counter__star {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
+}
+
+.stamp-counter.is-bumped {
+  animation: stamp-bump 0.45s ease-out;
+}
+
+@keyframes stamp-bump {
+  40% {
+    background-color: rgb(168 50 43 / 0.16);
+    scale: 1.25;
+  }
+}
+
+/* 6. Stand encounters
+   ========================================================================== */
+
+/* The spread: each place's cards laid out like a tarot reading, up to three to a row,
+   each tilted a little as if dealt by hand */
+.spread {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-md) var(--space-sm);
+  margin: 0;
+  padding: var(--space-xs) 0 var(--space-sm);
+  list-style: none;
+  perspective: 1000px; /* so turning a card over reads as a flip */
+}
+
+.spread__slot {
+  position: relative;
+  flex: 0 0 min(8rem, (100% - 2 * var(--space-sm)) / 3);
+  rotate: -1.5deg;
+}
+
+.spread__slot:nth-child(3n + 2) {
+  rotate: 1deg;
+}
+
+.spread__slot:nth-child(3n) {
+  rotate: -0.5deg;
+}
+
+.encounter-reveal-all {
+  margin-bottom: var(--space-sm);
+}
+
+/* A face-down card: a tarot back in deep navy, a gold star, and gold dots */
+.encounter__back {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.15rem;
+  width: 100%;
+  aspect-ratio: 3 / 5; /* the same shape as the card art */
+  padding: var(--space-sm);
+  border: 2px solid var(--color-card-gold);
+  border-radius: 8px;
+  background-color: var(--color-card-back);
+  background-image: radial-gradient(circle, rgb(217 180 90 / 0.3) 1px, transparent 1.6px);
+  background-size: 12px 12px;
+  box-shadow:
+    inset 0 0 0 5px var(--color-card-back),
+    inset 0 0 0 6px rgb(217 180 90 / 0.7),
+    0 2px 5px rgb(46 34 25 / 0.35);
+  color: var(--color-card-gold-text);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: translate 0.15s, box-shadow 0.15s;
+}
+
+.encounter__back:not(:disabled):hover {
+  translate: 0 -2px;
+  box-shadow:
+    inset 0 0 0 5px var(--color-card-back),
+    inset 0 0 0 6px rgb(217 180 90 / 0.7),
+    0 6px 12px rgb(46 34 25 / 0.35);
+}
+
+.encounter__back-star {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: var(--color-card-gold);
+}
+
+.encounter__back-action {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.encounter__back-count {
+  font-size: 0.75rem;
+}
+
+/* Cards turn over in story order: the next one glows faintly and says so; the ones after
+   it wait their turn, dimmed */
+.encounter__back.is-next {
+  box-shadow:
+    inset 0 0 0 5px var(--color-card-back),
+    inset 0 0 0 6px rgb(217 180 90 / 0.7),
+    0 0 0 3px rgb(217 180 90 / 0.45),
+    0 2px 5px rgb(46 34 25 / 0.35);
+}
+
+.encounter__back:disabled {
+  cursor: default;
+  opacity: 0.8;
+}
+
+.encounter__back-hint {
+  margin-top: var(--space-xs);
+  padding: 0 0.45rem;
+  border: 1px solid var(--color-card-gold);
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+
+.encounter__back-rematch {
+  color: var(--color-card-gold);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-style: italic;
+  font-weight: 700;
+}
+
+/* A face-up card: just its art and its name. It opens the card view. */
+.spread-card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.spread-card .card-art {
+  width: 100%;
+  transition: translate 0.15s, box-shadow 0.15s;
+}
+
+.spread-card:hover .card-art {
+  translate: 0 -3px;
+  filter: sepia(0.15) saturate(0.95) drop-shadow(0 8px 7px rgb(46 34 25 / 0.35));
+}
+
+.spread-card__name {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.spread-card__rematch {
+  padding: 0 0.45rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--color-stamp-red);
+  font-size: 0.75rem;
+  font-style: italic;
+}
+
+/* Stand photos: an anime still in an inked frame or, for a Stand never shown with its user,
+   two frames side by side like manga panels. Every photo fills the same 16:9 shape; each
+   half of a split is cropped to fit its frame (see the photo field in stops.js). */
+.stand-photo {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  column-gap: 3%;
+  aspect-ratio: 16 / 9;
+}
+
+.stand-photo__frame {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 2px solid var(--panel-line, var(--color-ink));
+  background-color: var(--color-ink);
+}
+
+.stand-photo__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Card art. Every card gets the same card-shaped space, so a row of them lines up; each
+   scan fits inside it whole (landscape god cards sit smaller), with a shadow that follows
+   the card's own outline. */
+.card-art {
+  display: block;
+  aspect-ratio: 3 / 5;
+  object-fit: contain;
+  filter: sepia(0.15) saturate(0.95) drop-shadow(0 2px 3px rgb(46 34 25 / 0.35));
+}
+
+/* No art yet (or it didn't load): a plain card with a star */
+.card-art--blank {
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  border: 2px dashed var(--color-ink-faded);
+  background-color: var(--color-paper-shade);
+  filter: none;
+}
+
+.card-art--blank svg {
+  width: 40%;
+  fill: var(--color-ink-faded);
+  opacity: 0.6;
+}
+
+/* An extra card that doesn't belong in the deck: a plain card ruled in black ink, lettered
+   "Not of the Arcana" where a tarot card has its numeral, with the Stand's picture inside.
+   Its lettering scales with the card (the journal's small card or the card view's large one). */
+.stand-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.15rem;
+  padding: 0.2rem;
+  border: 3px solid #fffdf7;
+  border-radius: 6px;
+  background-color: #fffdf7;
+  box-shadow: inset 0 0 0 1px var(--color-ink);
+  container-type: inline-size;
+}
+
+.stand-card__label,
+.stand-card__name {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: max(0.55rem, 8cqi);
+  line-height: 1.1;
+  text-align: center;
+}
+
+.stand-card__label {
+  font-style: italic;
+}
+
+.stand-card__name {
+  font-weight: 800;
+}
+
+.stand-card__image {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--color-ink);
+  object-fit: cover;
+}
+
+/* The moment a card turns over: an offset duotone flash around it, speed lines bursting
+   out from behind it, and ゴゴゴゴ rumbling over its corner. All of it fades away. */
+.spread__slot.is-bursting .card-art {
+  animation: card-burst 0.9s ease-out;
+}
+
+@keyframes card-burst {
+  20% {
+    filter: sepia(0.15) saturate(0.95) drop-shadow(-5px -5px 0 var(--color-burst-teal))
+      drop-shadow(5px 5px 0 var(--color-burst-magenta));
+  }
+}
+
+.spread__lines {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  z-index: -1;
+  width: 190%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    var(--color-burst-magenta) 0deg 4deg,
+    transparent 4deg 10deg,
+    var(--color-burst-teal) 10deg 13deg,
+    transparent 13deg 20deg,
+    var(--color-burst-yellow) 20deg 23deg,
+    transparent 23deg 30deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 30%, #000 36%, #000 55%, transparent 70%);
+  mask: radial-gradient(circle, transparent 30%, #000 36%, #000 55%, transparent 70%);
+  translate: -50% -50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: speed-lines 0.9s ease-out;
+}
+
+@keyframes speed-lines {
+  0% {
+    opacity: 0;
+    scale: 0.6;
+    rotate: -8deg;
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 1.2;
+    rotate: 6deg;
+  }
+}
+
+.spread__sfx {
+  position: absolute;
+  top: 0.25rem;
+  right: -0.4rem;
+  color: var(--color-hermit);
+  font-family: var(--font-sfx);
+  font-size: 1.3rem;
+  line-height: 1;
+  text-shadow: 0 0 3px var(--color-page), 0 0 3px var(--color-page);
+  writing-mode: vertical-rl;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  animation: rumble 0.9s ease-out;
+}
+
+@keyframes rumble {
+  0% {
+    opacity: 0;
+    scale: 1.5;
+  }
+
+  15% {
+    opacity: 0.95;
+    scale: 1;
+    translate: 0 0;
+  }
+
+  25% {
+    translate: -2px 1px;
+  }
+
+  35% {
+    translate: 2px -1px;
+  }
+
+  45% {
+    translate: -1px 2px;
+  }
+
+  55% {
+    translate: 1px -2px;
+  }
+
+  70% {
+    opacity: 0.9;
+    translate: 0 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* The first time a card turns over: a note pointing out that it can be opened and read */
+.card-hint {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-stamp-red);
+  font-family: var(--font-hand);
+  font-size: 1.4rem;
+  line-height: 1.1;
+  text-align: center;
+  -webkit-text-stroke: 0.035em currentColor;
+}
+
+/* Cream's void: a black disc swallows the face-down card, then the darkness opens from the
+   middle outward to show the card underneath (script.js sizes and animates both) */
+.is-voiding {
+  overflow: hidden;
+}
+
+.encounter__back.is-voiding {
+  position: relative;
+}
+
+.encounter__void {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: var(--void-size);
+  height: var(--void-size);
+  border-radius: 50%;
+  background-color: var(--color-void);
+  box-shadow: 0 0 8px 2px var(--color-void);
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+.encounter__void--opening {
+  background-color: transparent;
+  box-shadow: 0 0 0 100vmax var(--color-void);
+}
+
+/* A card's dossier, on its back in the card view: the Stand's photo, the Stand, its ratings,
+   and its lookup */
+
+/* The photo heads the dossier and opens full screen, with a little corner mark saying so */
+.dossier__photo {
+  position: relative;
+  width: 100%;
+  margin: 0 0 var(--space-sm);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.dossier__photo::after,
+.photo-button::after {
+  content: "⤢";
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background-color: rgb(46 34 25 / 0.8);
+  color: var(--color-page);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.dossier__type {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-stamp-red);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.dossier--god .dossier__type {
+  color: var(--color-gold-ink);
+}
+
+.dossier--stand .dossier__type {
+  color: var(--color-ink);
+}
+
+.dossier--unrecorded .dossier__type {
+  color: var(--color-ink-faded);
+}
+
+.dossier__description {
+  margin: var(--space-sm) 0 0;
+}
+
+/* In a narrow space each label sits above its value */
+.dossier .fact,
+.country .fact {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.dossier .fact dt,
+.country .fact dt {
+  font-size: 0.8rem;
+}
+
+/* Stand stats: a hexagon chart, with the six ratings also written out beside it */
+.stats {
+  margin: var(--space-sm) 0 0;
+  padding-top: var(--space-sm);
+  border-top: 1px dashed rgb(107 88 69 / 0.5);
+  color: var(--color-stamp-red); /* the chart is drawn in the card's ink */
+}
+
+.dossier--god .stats {
+  color: var(--color-gold-ink);
+}
+
+.dossier--stand .stats {
+  color: var(--color-ink);
+}
+
+.dossier--unrecorded .stats {
+  color: var(--color-ink-faded);
+}
+
+.stats__title {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-ink-faded);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.stats__body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm) var(--space-md);
+}
+
+.stats__chart {
+  flex: none;
+  width: 9.5rem;
+  height: 9.5rem;
+}
+
+.stats__ring,
+.stats__axis {
+  fill: none;
+  stroke: var(--color-ink-faded);
+  stroke-opacity: 0.35;
+  stroke-width: 1;
+}
+
+.stats__shape {
+  fill: currentColor;
+  fill-opacity: 0.16;
+}
+
+.stats__edge {
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.stats__edge--uncertain {
+  stroke-dasharray: 4 4;
+  stroke-linecap: butt;
+}
+
+.stats__point {
+  fill: currentColor;
+}
+
+.stats__special {
+  fill: var(--color-page);
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.stats__special--unknown {
+  stroke-dasharray: 3 2;
+}
+
+.stats__symbol {
+  fill: currentColor;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.stats__grade {
+  fill: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.stats__list {
+  flex: 1 1 8rem;
+  display: grid;
+  gap: 0.1rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.stats__item {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  border-bottom: 1px dotted rgb(107 88 69 / 0.35);
+}
+
+.stats__item dt {
+  color: var(--color-ink-faded);
+}
+
+.stats__item dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+/* 7. Live data panels
+   Each API section shows a loading message, its data, or an error with a
+   Try again button.
+   ========================================================================== */
+
+.data-panel {
+  min-height: 2.5rem;
+}
+
+.data-panel__loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin: 0;
+  color: var(--color-ink-faded);
+  font-style: italic;
+}
+
+.data-panel__spinner {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--color-ink-faded);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.data-panel__error {
+  padding: var(--space-sm) var(--space-md);
+  border: 2px dashed var(--color-stamp-red);
+  background-color: rgb(168 50 43 / 0.06);
+}
+
+.data-panel__error-text {
+  margin: 0 0 var(--space-sm);
+}
+
+/* Weather and local time: the description gets a full row since it can be long */
+/* Two columns when the clock (with seconds) fits on one line in each, otherwise one */
+.conditions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(11rem, (100% - var(--space-sm)) / 2), 1fr));
+  gap: var(--space-sm);
+  margin: 0;
+}
+
+.conditions__item {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px dashed var(--color-ink-faded);
+}
+
+.conditions__item:first-child {
+  grid-column: 1 / -1;
+}
+
+.conditions__item dt {
+  color: var(--color-ink-faded);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.conditions__item dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+/* A note in place of data, for a value in stops.js that needs fixing */
+.data-panel__note {
+  margin: 0;
+}
+
+/* Wikipedia summaries, for places and gods */
+.wiki {
+  display: flow-root; /* contains the floated god image */
+}
+
+.wiki__extract {
+  margin: 0;
+}
+
+/* Tarot meanings: upright and reversed, like a fortune-teller's notes */
+.tarot__waite-name {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-ink-faded);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.tarot__meanings {
+  display: grid;
+  gap: var(--space-xs);
+  margin: 0;
+}
+
+.tarot__meaning dt {
+  color: var(--color-stamp-red);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.tarot__meaning dd {
+  margin: 0;
+}
+
+.wiki__figure {
+  margin: 0;
+}
+
+.wiki__image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  filter: sepia(0.3) saturate(0.85) contrast(0.95);
+}
+
+/* A Wikipedia photo that opens full screen when pressed (the place photo and the dish photo) */
+.photo-button {
+  position: relative;
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+/* Place photo: a print mounted in the journal with ink photo corners */
+.wiki--place .wiki__figure {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  margin: var(--space-xs) auto var(--space-md);
+  padding: 0.5rem 0.5rem 0.35rem;
+  background-color: #fffdf7;
+  box-shadow: 0 2px 6px rgb(46 34 25 / 0.3);
+  rotate: -1deg;
+}
+
+.wiki--place .wiki__figure::before,
+.wiki--place .wiki__figure::after {
+  content: "";
+  position: absolute;
+  width: 1.25rem;
+  height: 1.25rem;
+  opacity: 0.85;
+}
+
+.wiki--place .wiki__figure::before {
+  top: -0.35rem;
+  left: -0.35rem;
+  background: linear-gradient(135deg, var(--color-ink) 50%, transparent 50%);
+}
+
+.wiki--place .wiki__figure::after {
+  right: -0.35rem;
+  bottom: -0.35rem;
+  background: linear-gradient(-45deg, var(--color-ink) 50%, transparent 50%);
+}
+
+/* God image: small, in an arch-topped gold frame like a temple stele */
+.wiki--god .wiki__figure {
+  float: right;
+  max-width: 6rem;
+  margin: 0 0 var(--space-sm) var(--space-md);
+  padding: 0.75rem 0.35rem 0.35rem;
+  border: 3px double var(--color-gold);
+  border-radius: 999px 999px 4px 4px;
+  background-color: var(--color-page);
+}
+
+.wiki--god .wiki__image {
+  width: auto;
+  max-height: 8rem;
+  margin: 0 auto;
+}
+
+/* On the menu: the stop's dish, with its photo pinned beside what it is, and Joseph's note */
+.dish {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.dish__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.dish__body {
+  display: grid;
+  grid-template-columns: minmax(0, 9rem) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-sm) var(--space-md);
+}
+
+.dish__body:not(:has(.dish__photo)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.dish__photo {
+  padding: 0.35rem;
+  background-color: #fffdf7;
+  box-shadow: 0 2px 6px rgb(46 34 25 / 0.3);
+  rotate: 1.5deg;
+}
+
+.dish__photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  filter: sepia(0.3) saturate(0.85) contrast(0.95);
+}
+
+.dish__description {
+  margin: 0;
+}
+
+/* Joseph's note, written in the margin beside the menu */
+.dish__note {
+  margin: 0;
+  padding-left: var(--space-sm);
+  border-left: 3px solid var(--color-stamp-red);
+  font-style: italic;
+}
+
+/* Very narrow screens: the photo above the description */
+@media (max-width: 26rem) {
+  .dish__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dish__photo {
+    width: min(100%, 15rem);
+  }
+}
+
+/* Country: a flag like a luggage sticker beside the name, currency, and languages */
+.country {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: var(--space-md);
+  align-items: start;
+}
+
+.country__flag-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 3px solid #fffdf7;
+  box-shadow: 0 2px 5px rgb(46 34 25 / 0.35);
+  filter: sepia(0.2) saturate(0.9);
+  rotate: 2deg;
+}
+
+/* Fallback when the flag image can't load */
+.country__emoji {
+  display: block;
+  font-size: 3rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.country__name {
+  margin: 0 0 var(--space-xs);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.dossier__lookup {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px dashed rgb(107 88 69 / 0.5);
+}
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* 8. Collected stamps
+   ========================================================================== */
+
+/* A page of its own below the journal (below the map and journal on wide screens) */
+.collection {
+  padding: var(--space-md) var(--space-md) var(--space-md) 1.75rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 4px;
+  background-color: var(--color-page);
+  box-shadow: var(--shadow-soft);
+}
+
+.collection__title {
+  margin: 0 0 var(--space-sm);
+  font-size: 1.25rem;
+}
+
+.collection__group + .collection__group {
+  margin-top: var(--space-md);
+}
+
+/* Wide screens: the groups sit side by side across the full width */
+@media (min-width: 56rem) {
+  .collection {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    align-items: start;
+    gap: var(--space-md) var(--space-lg);
+  }
+
+  .collection__title {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+
+  .collection__group + .collection__group {
+    margin-top: 0;
+  }
+}
+
+.collection__group-title {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-ink-faded);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-style: italic;
+  font-weight: 400;
+}
+
+.collection__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collection__empty {
+  margin: 0;
+  color: var(--color-ink-faded);
+  font-style: italic;
+}
+
+/* A slightly different tilt for each stamp, like they were pressed by hand */
+.stamp {
+  rotate: -3deg;
+}
+
+.stamp:nth-child(3n + 2) {
+  rotate: 2deg;
+}
+
+.stamp:nth-child(3n) {
+  rotate: -1deg;
+}
+
+.stamp.is-new {
+  animation: stamp-in 0.5s ease-out;
+}
+
+/* Tarot and unrecorded stamps: a dashed rectangle around everything */
+.stamp__button {
+  position: relative;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 0.125rem;
+  width: 6.5rem;
+  min-height: 6.5rem;
+  padding: var(--space-sm);
+  border: 2px dashed var(--color-stamp-red);
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--color-stamp-red);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.stamp__button:hover,
+.stamp__button[aria-current="true"] {
+  border-style: solid;
+  background-color: rgb(168 50 43 / 0.08);
+}
+
+.stamp__face {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.125rem;
+}
+
+/* The card art pressed in faint red ink, under the stamp's lettering */
+.stamp__ink {
+  position: absolute;
+  inset: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  border-radius: 3px;
+  object-fit: cover;
+  opacity: 0.12; /* faint enough that the stamp's lettering keeps at least 4.5:1 contrast */
+  filter: grayscale(1) contrast(1.4) sepia(1) saturate(6) hue-rotate(-40deg);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* The lettering sits above the ink print, with a faint paper-colored halo */
+.stamp__mark,
+.stamp__name,
+.stamp__place,
+.stamp__day {
+  position: relative;
+  text-shadow: 0 0 2px var(--color-page), 0 0 2px var(--color-page);
+}
+
+.stamp__mark {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stamp__mark:empty {
+  display: none;
+}
+
+.stamp__name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.stamp__place,
+.stamp__day {
+  color: var(--color-ink-faded);
+  font-size: 0.7rem;
+  line-height: 1.2;
+}
+
+.stamp__place {
+  margin-top: var(--space-xs);
+}
+
+/* A Crusader's stamp names who joined, where other stamps name the place */
+.stamp--crusader .stamp__place {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.stamp--unrecorded .stamp__button {
+  border-color: var(--color-ink-faded);
+  color: var(--color-ink-faded);
+}
+
+/* God stamps: a gold cartouche (a tall oval with a tie bar at its base),
+   the frame ancient Egyptians drew around royal and divine names */
+.stamp--god .stamp__button {
+  border-color: transparent;
+  color: var(--color-gold-ink);
+}
+
+.stamp--god .stamp__button:hover,
+.stamp--god .stamp__button[aria-current="true"] {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.stamp--god .stamp__face {
+  place-items: center;
+  width: 3.25rem;
+  min-height: 6rem;
+  margin-bottom: 0.75rem;
+  padding: 0.75rem 0.25rem;
+  border: 4px double var(--color-gold);
+  border-radius: 999px;
+}
+
+.stamp--god .stamp__ink {
+  inset: 2px;
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  border-radius: 999px;
+}
+
+.stamp--god .stamp__face::after {
+  content: "";
+  position: absolute;
+  right: -0.4rem;
+  bottom: -0.7rem;
+  left: -0.4rem;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--color-gold);
+}
+
+.stamp--god .stamp__button:hover .stamp__face,
+.stamp--god .stamp__button[aria-current="true"] .stamp__face {
+  background-color: rgb(168 122 34 / 0.14);
+}
+
+.stamp--god .stamp__name {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+}
+
+/* Other Stands: stamped in plain black ink */
+.stamp--stand .stamp__button {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.stamp--stand .stamp__button:hover,
+.stamp--stand .stamp__button[aria-current="true"] {
+  background-color: rgb(46 34 25 / 0.06);
+}
+
+.stamp--stand .stamp__ink {
+  filter: grayscale(1) contrast(1.4);
+}
+
+/* Cream: no ink at all, just a hole punched through the page */
+.stamp--void .stamp__button {
+  border-color: transparent;
+}
+
+.stamp--void .stamp__button:hover,
+.stamp--void .stamp__button[aria-current="true"] {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.stamp--void .stamp__face {
+  place-items: center;
+  width: 4.5rem;
+  aspect-ratio: 1;
+  margin-bottom: 0.25rem;
+  border-radius: 50%;
+  background-color: var(--color-void);
+  box-shadow:
+    inset 0 4px 8px rgb(0 0 0 / 0.9),
+    0 0 0 2px var(--color-paper-shade);
+}
+
+.stamp--void .stamp__button:hover .stamp__face,
+.stamp--void .stamp__button[aria-current="true"] .stamp__face {
+  box-shadow:
+    inset 0 4px 8px rgb(0 0 0 / 0.9),
+    0 0 0 3px var(--color-ink);
+}
+
+.stamp--void .stamp__name {
+  color: var(--color-page);
+  text-shadow: none;
+}
+
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    scale: 1.6;
+  }
+
+  60% {
+    opacity: 1;
+    scale: 0.95;
+  }
+
+  to {
+    scale: 1;
+  }
+}
+
+/* 9. Buttons
+   ========================================================================== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.6rem 1.2rem;
+  border: 2px solid var(--color-ink);
+  border-radius: 3px;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+}
+
+.button--primary {
+  border-color: var(--color-route);
+  background-color: var(--color-route);
+  color: var(--color-page);
+}
+
+.button--primary:hover {
+  border-color: var(--color-route-dark);
+  background-color: var(--color-route-dark);
+}
+
+.button--secondary {
+  background-color: transparent;
+  color: var(--color-ink);
+}
+
+.button--secondary:hover {
+  background-color: var(--color-paper-shade);
+}
+
+.button--small {
+  min-height: 2.25rem;
+  padding: 0.35rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* A train ticket: notches cut into both sides and a dashed tear line near each end */
+.button--ticket {
+  position: relative;
+  border-radius: 6px;
+  background-image:
+    repeating-linear-gradient(to bottom, rgb(248 241 223 / 0.6) 0 4px, transparent 4px 8px),
+    repeating-linear-gradient(to bottom, rgb(248 241 223 / 0.6) 0 4px, transparent 4px 8px);
+  background-repeat: no-repeat;
+  background-size: 1px 60%;
+  background-position: 1.4rem center, calc(100% - 1.4rem) center;
+}
+
+.button--ticket::before,
+.button--ticket::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  background-color: var(--color-page);
+  translate: 0 -50%;
+}
+
+.button--ticket::before {
+  left: -0.45rem;
+}
+
+.button--ticket::after {
+  right: -0.45rem;
+}
+
+/* aria-disabled keeps the button focusable while the journey animates */
+.button[aria-disabled="true"] {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+/* 10. Intro and ending dialogs
+   ========================================================================== */
+
+.overlay {
+  width: min(36rem, calc(100% - 2rem));
+  padding: var(--space-lg);
+  border: 2px solid var(--color-ink);
+  border-radius: 4px;
+  background-color: var(--color-page);
+  box-shadow: 0 10px 30px rgb(46 34 25 / 0.4);
+  color: var(--color-ink);
+}
+
+/* Literal colors: older browsers don't pass custom properties to ::backdrop */
+.overlay::backdrop {
+  background-color: rgb(46 34 25 / 0.45);
+  backdrop-filter: blur(2px);
+}
+
+.overlay p {
+  margin: 0 0 var(--space-md);
+}
+
+.overlay .overlay__kicker {
+  margin: 0;
+  color: var(--color-stamp-red);
+  font-family: var(--font-hand);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.overlay__title {
+  margin: var(--space-xs) 0 var(--space-md);
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  font-weight: 800;
+  font-variation-settings: "SOFT" 100, "WONK" 1;
+}
+
+.overlay__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.overlay--ending {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 4px var(--color-page), 0 0 0 6px var(--color-gold), 0 10px 30px rgb(46 34 25 / 0.4);
+}
+
+.ending__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+  margin: 0;
+}
+
+/* An odd one out at the end takes the full row */
+.ending__stat:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.ending__stat {
+  padding: var(--space-sm);
+  border: 1px dashed var(--color-ink-faded);
+  text-align: center;
+}
+
+.ending__stat dt {
+  color: var(--color-ink-faded);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.ending__stat dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+/* A Stand's name sweeps across the screen in big lettering as its card is turned over,
+   like an anime's Stand introduction. It never catches a click, and leaves after
+   CAPTION_MS (script.js), which also sets how long the sweep takes. */
+.stand-caption {
+  position: fixed;
+  top: var(--caption-top, 20%); /* script.js keeps it clear of the card being turned over */
+  right: -5vw;
+  left: -5vw;
+  z-index: 1050; /* above the map's controls, below the time stop */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(0.75rem, 3vw, 2rem);
+  padding: var(--space-sm) calc(5vw + clamp(1rem, 6vw, 4rem));
+  background-color: var(--color-ink);
+  box-shadow: 0 0 0 3px var(--color-page), 0 0 0 5px var(--color-ink);
+  color: var(--color-page);
+  pointer-events: none;
+  rotate: -3deg;
+}
+
+.stand-caption.is-showing {
+  animation: caption-sweep var(--caption-ms, 3s) ease both;
+}
+
+/* The Stand's photo, sized by the screen's width and height so the band stays clear of the card */
+.stand-caption__photo {
+  --panel-line: var(--color-page);
+  width: min(18rem, 30vw, 24vh * 16 / 9);
+}
+
+.stand-caption__photo:empty {
+  display: none;
+}
+
+.stand-caption__text {
+  display: grid;
+  justify-items: start;
+}
+
+/* Narrow screens: the photo above the lettering, as big as the screen allows */
+@media (max-width: 40rem) {
+  .stand-caption {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space-xs);
+  }
+
+  .stand-caption__photo {
+    width: min(64vw, 24vh * 16 / 9);
+  }
+}
+
+.stand-caption__label {
+  color: var(--color-card-gold-text);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.stand-caption__stand {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 6vw, 3.5rem);
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 3px 3px 0 var(--color-burst-magenta), -2px -2px 0 var(--color-burst-teal);
+}
+
+.stand-caption__user {
+  font-size: clamp(0.9rem, 2.2vw, 1.2rem);
+  font-weight: 700;
+}
+
+@keyframes caption-sweep {
+  0% {
+    opacity: 0;
+    translate: -40% 0;
+  }
+
+  10%,
+  88% {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  100% {
+    opacity: 0;
+    translate: 30% 0;
+  }
+}
+
+/* The World's time stop: a sphere that inverts every color behind it spreads out from
+   the Face DIO button (script.js grows and shrinks the circle) */
+.time-stop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100; /* above the map's controls, which go up to 1000 */
+  -webkit-backdrop-filter: invert(1);
+  backdrop-filter: invert(1);
+  clip-path: circle(0 at 50% 50%);
+}
+
+/* Browsers that can't invert a layer invert the whole page instead */
+.is-inverted {
+  filter: invert(1);
+}
+
+/* While time is stopped, every CSS animation holds still mid-motion */
+.is-time-stopped *,
+.is-time-stopped *::before,
+.is-time-stopped *::after {
+  animation-play-state: paused;
+}
+
+/* The card view: a card lifted out of the spread into the middle of the screen. The front
+   is the card's art; the back, like the back of a tarot card, holds its Stand dossier. */
+.card-view {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-page);
+  overflow: hidden;
+}
+
+/* Literal colors: older browsers don't pass custom properties to ::backdrop */
+.card-view::backdrop {
+  background-color: rgb(23 18 13 / 0.92);
+  backdrop-filter: blur(3px);
+}
+
+.card-view__layout {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: center;
+  gap: var(--space-sm);
+  height: 100%;
+  padding: var(--space-md) var(--space-md) var(--space-lg);
+  perspective: 1600px;
+}
+
+.card-view__header {
+  padding: 0 3rem; /* clear of the close button */
+  text-align: center;
+}
+
+.card-view__title {
+  margin: 0;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.card-view__count {
+  margin: 0;
+  color: var(--color-card-gold-text);
+  font-size: 0.9rem;
+}
+
+.card-view__count:empty {
+  display: none;
+}
+
+/* Both sides share one card-shaped space, sized to fit the screen */
+.card-view__card {
+  display: grid;
+  width: min(86vw, (100dvh - 11rem) * 3 / 5, 30rem);
+  aspect-ratio: 3 / 5;
+  transform-style: preserve-3d;
+  transition: transform 0.45s ease;
+}
+
+.card-view__card.is-turned {
+  transform: rotateY(180deg);
+}
+
+.card-view__face {
+  grid-area: 1 / 1;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 12px;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.card-view__front {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.card-view__front .card-art {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 12px 28px rgb(0 0 0 / 0.55));
+}
+
+/* The full-size card is on its way: the journal-size one shows, slightly soft, until then */
+.card-art.is-sharpening {
+  opacity: 0.85;
+}
+
+.card-view__back {
+  overflow: auto;
+  padding: 0.9rem;
+  border: 2px solid var(--color-card-gold);
+  background-color: var(--color-card-back);
+  background-image: radial-gradient(circle, rgb(217 180 90 / 0.3) 1px, transparent 1.6px);
+  background-size: 14px 14px;
+  box-shadow:
+    inset 0 0 0 6px var(--color-card-back),
+    inset 0 0 0 7px rgb(217 180 90 / 0.7),
+    0 12px 28px rgb(0 0 0 / 0.55);
+  color: var(--color-ink);
+  transform: rotateY(180deg);
+  cursor: pointer;
+}
+
+.card-view__back-title {
+  margin: 0.2rem 0 var(--space-sm);
+  color: var(--color-card-gold-text);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-style: italic;
+  text-align: center;
+}
+
+.card-view__back .dossier {
+  padding: var(--space-md);
+  border-radius: 6px;
+  background-color: var(--color-page);
+  cursor: auto;
+}
+
+.card-view__controls {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.card-view .button--secondary {
+  border-color: var(--color-page);
+  background-color: var(--color-page);
+}
+
+.card-view__step {
+  min-width: 2.75rem;
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+/* The × that closes a full-screen dialog (the card view and the photo viewer) */
+.dialog-close {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 2px solid var(--color-page);
+  border-radius: 50%;
+  background-color: var(--color-ink);
+  color: var(--color-page);
+  font: inherit;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* The photo viewer: a Stand photo as large as the screen allows, over the card view */
+.photo-viewer {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-page);
+  overflow: hidden;
+}
+
+/* Literal colors: older browsers don't pass custom properties to ::backdrop */
+.photo-viewer::backdrop {
+  background-color: rgb(14 11 8 / 0.96);
+}
+
+.photo-viewer__layout {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  align-items: center;
+  gap: var(--space-sm);
+  height: 100%;
+  padding: var(--space-md) var(--space-md) var(--space-lg);
+}
+
+.photo-viewer__title {
+  margin: 0;
+  padding: 0 3rem; /* clear of the close button */
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  text-align: center;
+}
+
+.photo-viewer__photo {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.photo-viewer .stand-photo {
+  --panel-line: var(--color-page);
+  width: min(100%, (100dvh - 8rem) * 16 / 9);
+}
+
+/* A Wikipedia photo fills the space, whole: the journal-size copy (a little soft) until the
+   larger one arrives */
+.photo-viewer__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.photo-viewer__image.is-sharpening {
+  opacity: 0.85;
+}
+
+.photo-viewer__status {
+  margin: 0;
+  color: var(--color-card-gold-text);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.photo-viewer__status:empty {
+  display: none;
+}
+
+/* Tall, narrow screens: a split's two frames stack, so each can be much bigger */
+@media (max-width: 40rem) and (orientation: portrait) {
+  .photo-viewer .stand-photo--split {
+    grid-auto-rows: minmax(0, 1fr);
+    grid-auto-flow: row;
+    row-gap: 1.5%;
+    aspect-ratio: 0.42;
+    width: min(100%, (100dvh - 7rem) * 0.42);
+  }
+}
+
+/* Sources and credits: a longer dialog that scrolls, with the long file lists folded away */
+.overlay--sources {
+  width: min(46rem, calc(100% - 2rem));
+}
+
+.sources__section + .sources__section {
+  margin-top: var(--space-md);
+}
+
+.sources__title {
+  margin: 0 0 var(--space-xs);
+  font-size: 1.15rem;
+}
+
+.sources__list {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.sources__list li + li {
+  margin-top: var(--space-xs);
+}
+
+.sources__list .button {
+  margin-left: var(--space-xs);
+}
+
+.sources__jojo + .sources__jojo {
+  margin-top: var(--space-sm);
+}
+
+.sources__jojo p {
+  margin-bottom: var(--space-xs);
+}
+
+.sources__jojo summary {
+  color: var(--color-stamp-red);
+  cursor: pointer;
+}
+
+.sources__files {
+  margin: var(--space-xs) 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  columns: 2 18rem;
+  overflow-wrap: anywhere;
+}
+
+/* The footer: the Sources and credits button, then the fan project notice */
+.site-footer .button {
+  font-size: 0.85rem;
+}
+
+/* The roll call: the Crusaders' cards dealt onto a dark table, one at a time */
+.roll-call {
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-page);
+  overflow: hidden;
+}
+
+/* Literal colors: older browsers don't pass custom properties to ::backdrop */
+.roll-call::backdrop {
+  background-color: rgb(23 18 13 / 0.94);
+  backdrop-filter: blur(4px);
+}
+
+.roll-call__layout {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--space-md);
+  width: min(62rem, 100%);
+  height: 100%;
+  margin: 0 auto;
+  padding: var(--space-md) var(--space-md) var(--space-lg);
+}
+
+.roll-call__header {
+  text-align: center;
+}
+
+.roll-call__kicker {
+  margin: 0;
+  color: var(--color-card-gold-text);
+  font-family: var(--font-hand);
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.roll-call__title {
+  margin: 0;
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1.1;
+  text-shadow: 3px 3px 0 var(--color-burst-magenta), -2px -2px 0 var(--color-burst-teal);
+}
+
+.roll-call__list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: var(--space-md);
+  margin: 0;
+  padding: var(--space-xs);
+  overflow: auto;
+  list-style: none;
+}
+
+.roll-call__member {
+  display: grid;
+  align-content: start;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border: 2px solid var(--color-card-gold);
+  border-radius: 10px;
+  background-color: var(--color-card-back);
+  box-shadow: inset 0 0 0 4px var(--color-card-back), inset 0 0 0 5px rgb(217 180 90 / 0.6), 0 8px 20px rgb(0 0 0 / 0.5);
+}
+
+.roll-call__member.is-dealt {
+  animation: deal-card 0.45s ease-out both;
+}
+
+@keyframes deal-card {
+  from {
+    opacity: 0;
+    translate: 0 3rem;
+    rotate: -8deg;
+    scale: 0.9;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    rotate: 0deg;
+    scale: 1;
+  }
+}
+
+/* On a short screen the photo shrinks (centered) so both rows of cards fit: a card is its
+   16:9 photo plus about 8.5rem of lettering, and the title and buttons take about 15rem.
+   It never shrinks below 9rem wide; a screen too short for that scrolls the table instead. */
+.roll-call__card {
+  --panel-line: var(--color-card-gold);
+  display: grid;
+  justify-self: center;
+  width: min(100%, max(9rem, ((100dvh - 15rem) / 2 - 8.5rem) * 16 / 9));
+  aspect-ratio: 16 / 9;
+}
+
+/* No photo: their tarot card, standing in the same space */
+.roll-call__card .card-art {
+  width: 100%;
+  height: 100%;
+}
+
+/* A Crusader who joins later: a face-down card with a gold star */
+.roll-call__member--face-down .roll-call__card {
+  place-items: center;
+  border: 1px solid rgb(217 180 90 / 0.6);
+  background-image: radial-gradient(circle, rgb(217 180 90 / 0.35) 1px, transparent 1.6px);
+  background-size: 12px 12px;
+}
+
+.roll-call__back-star {
+  width: 30%;
+  fill: var(--color-card-gold);
+}
+
+.roll-call__caption {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.roll-call__name,
+.roll-call__stand {
+  display: block;
+}
+
+.roll-call__name {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-style: italic;
+}
+
+.roll-call__line {
+  margin: 0;
+  color: var(--color-card-gold-text);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+.roll-call__line.is-todo {
+  color: var(--color-card-gold-text);
+  opacity: 0.8;
+}
+
+.roll-call__controls {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.roll-call .button--secondary {
+  border-color: var(--color-page);
+  background-color: var(--color-page);
+}
+
+/* Narrow screens: two cards to a row */
+@media (max-width: 40rem) {
+  .roll-call__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); /* three rows: the table scrolls on short screens */
+    gap: var(--space-sm);
+  }
+
+  .roll-call__card {
+    width: 100%;
+  }
+
+  .roll-call__name {
+    font-size: 1rem;
+  }
+}
+
+/* 11. Utilities and motion preferences
+   ========================================================================== */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp.is-new,
+  .stamp-counter.is-bumped,
+  .stand-caption.is-showing,
+  .roll-call__member.is-dealt,
+  .data-panel__spinner,
+  .entry__menace.is-looming {
+    animation: none;
+  }
+
+  .stop-marker__pin,
+  .encounter__back,
+  .spread-card .card-art,
+  .card-view__card {
+    transition: none;
+  }
+}
