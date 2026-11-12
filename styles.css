@@ -2456,8 +2456,11 @@ html:has(dialog[open]) {
   text-align: center;
 }
 
+/* One cell exactly the size of the space between the title and the bottom, so a photo sized
+   to it fits whole instead of running off the screen */
 .photo-viewer__photo {
   display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
   width: 100%;
   height: 100%;
